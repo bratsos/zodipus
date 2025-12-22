@@ -1,0 +1,90 @@
+{
+  "name": "zodipus",
+  "version": "0.1.0",
+  "description": "Zodipus: solves your schema tragedies - A Prisma generator for clean Zod schemas with custom JSON field support",
+  "keywords": ["prisma", "generator", "zod", "validation", "schema", "typescript", "relations"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bratsos/zodipus.git",
+    "directory": "packages/zodipus"
+  },
+  "license": "MIT",
+  "author": "Alex Bratsos",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.cts",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.cjs"
+    },
+    "./queryEngine": {
+      "types": "./dist/queryEngine.d.cts",
+      "require": "./dist/queryEngine.cjs",
+      "default": "./dist/queryEngine.cjs"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.cts",
+      "require": "./dist/errors.cjs",
+      "default": "./dist/errors.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
+  "bin": {
+    "zodipus": "./dist/cli.cjs"
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rimraf dist .turbo node_modules",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "prepublishOnly": "pnpm run build && pnpm run typecheck && pnpm run test",
+    "test:setup": "pnpm db:start && sleep 2 && pnpm db:migrate",
+    "test": "dotenv -o -e .env.test -- vitest run",
+    "test:watch": "dotenv -o -e .env.test -- vitest",
+    "db:start": "docker compose up -d",
+    "db:stop": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "db:migrate": "dotenv -o -e .env.test -- prisma migrate deploy",
+    "db:generate": "dotenv -o -e .env.test -- prisma generate"
+  },
+  "dependencies": {
+    "commander": "^14.0.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@prisma/client": "^6.17.1",
+    "@prisma/generator-helper": "^6.17.1",
+    "@types/node": "^22.10.2",
+    "dotenv-cli": "^8.0.0",
+    "prisma": "^6.17.1",
+    "rimraf": "^5.0.5",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4",
+    "zod": "^3.25.0"
+  },
+  "peerDependencies": {
+    "@prisma/generator-helper": "^6.0.0 || ^7.0.0",
+    "prisma": "^6.0.0 || ^7.0.0",
+    "zod": "^3.25.0 || ^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": false
+    },
+    "prisma": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

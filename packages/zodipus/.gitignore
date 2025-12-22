@@ -1,0 +1,4 @@
+src/generated/enums.ts
+src/generated/models.ts
+src/generated/generated-relations.ts
+src/generated/generated-index.ts

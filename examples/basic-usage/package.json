@@ -1,0 +1,30 @@
+{
+  "name": "zodipus-example-basic-usage",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Basic usage example of Zodipus generator",
+  "type": "module",
+  "scripts": {
+    "db:start": "docker run --name zodipus-example-db -e POSTGRES_DB=zodipus_example -e POSTGRES_USER=zodipus_example -e POSTGRES_PASSWORD=zodipus_example_password -p 5434:5432 -d postgres:16",
+    "db:stop": "docker stop zodipus-example-db",
+    "db:remove": "docker rm zodipus-example-db",
+    "db:reset": "pnpm db:stop && pnpm db:remove && pnpm db:start && sleep 2 && pnpm db:push",
+    "db:push": "dotenv -- prisma db push --skip-generate",
+    "db:generate": "prisma generate",
+    "dev": "dotenv -- tsx src/demo.ts",
+    "setup": "pnpm db:start && sleep 2 && pnpm db:push && pnpm db:generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.17.1",
+    "@prisma/generator-helper": "^6.17.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "dotenv-cli": "^8.0.0",
+    "prisma": "^6.17.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.7.2",
+    "zodipus": "workspace:*"
+  }
+}

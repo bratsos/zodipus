@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/bratsos/zodipus#readme
+    about: Check the README for usage examples and configuration options
+  - name: Stack Overflow
+    url: https://stackoverflow.com/questions/tagged/zodipus
+    about: Ask questions about using Zodipus on Stack Overflow

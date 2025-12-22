@@ -1,0 +1,230 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Biome lint
+        run: pnpm --filter zodipus lint
+
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bootstrap Generator
+        run: pnpm --filter zodipus build -- --no-dts
+
+      - name: Generate Prisma Client
+        run: |
+          cd packages/zodipus
+          pnpm exec prisma generate
+
+      - name: Build package
+        run: pnpm --filter zodipus build
+
+      - name: Run TypeScript check
+        run: pnpm --filter zodipus typecheck
+
+  test:
+    name: Test (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['24']
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: zodipus_test
+          POSTGRES_PASSWORD: zodipus_test_password
+          POSTGRES_DB: zodipus_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bootstrap Generator
+        run: pnpm --filter zodipus build -- --no-dts
+
+      - name: Generate Prisma Client
+        run: |
+          cd packages/zodipus
+          pnpm exec prisma generate
+
+      - name: Build package
+        run: pnpm --filter zodipus build
+
+      - name: Run migrations
+        run: pnpm --filter zodipus db:migrate
+        env:
+          DATABASE_URL: postgresql://zodipus_test:zodipus_test_password@localhost:5433/zodipus_test?schema=public
+
+      - name: Run tests
+        run: pnpm --filter zodipus test
+        env:
+          DATABASE_URL: postgresql://zodipus_test:zodipus_test_password@localhost:5433/zodipus_test?schema=public
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bootstrap Generator
+        run: pnpm --filter zodipus build -- --no-dts
+
+      - name: Generate Prisma Client
+        run: |
+          cd packages/zodipus
+          pnpm exec prisma generate
+
+      - name: Build package
+        run: pnpm --filter zodipus build
+
+      - name: Check dist output
+        run: ls -la packages/zodipus/dist
+
+      - name: Verify package exports
+        run: |
+          cd packages/zodipus
+          node -e "require('./dist/index.cjs')"
+
+  compatibility:
+    name: Compatibility (Prisma ${{ matrix.prisma }}, Zod ${{ matrix.zod }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - prisma: '6'
+            zod: '3.25'
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: zodipus_test
+          POSTGRES_PASSWORD: zodipus_test_password
+          POSTGRES_DB: zodipus_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install specific versions
+        run: |
+          cd packages/zodipus
+          pnpm add -D prisma@${{ matrix.prisma }} @prisma/client@${{ matrix.prisma }} @prisma/generator-helper@${{ matrix.prisma }} zod@${{ matrix.zod }}
+
+      - name: Bootstrap Generator
+        run: pnpm --filter zodipus build -- --no-dts
+
+      - name: Generate Prisma Client
+        run: |
+          cd packages/zodipus
+          pnpm exec prisma generate
+
+      - name: Build package
+        run: pnpm --filter zodipus build
+
+      - name: Run migrations
+        run: pnpm --filter zodipus db:migrate
+        env:
+          DATABASE_URL: postgresql://zodipus_test:zodipus_test_password@localhost:5433/zodipus_test?schema=public
+
+      - name: Run tests
+        run: pnpm --filter zodipus test
+        env:
+          DATABASE_URL: postgresql://zodipus_test:zodipus_test_password@localhost:5433/zodipus_test?schema=public

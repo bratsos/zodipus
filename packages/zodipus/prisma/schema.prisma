@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator zodipus {
+  provider      = "node ../zodipus/dist/index.cjs"
+  output        = "../src/generated"
+  relationDepth = "10"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// Models
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(USER)
+  
+  /// User profile settings and preferences
+  /// @zodSchema UserSettingsSchema
+  settings  Json?
+  
+  posts     Post[]
+  comments  Comment[]
+  profile   Profile?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id        String  @id @default(uuid())
+  bio       String?
+  avatar    String?
+  website   String?
+  
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String  @unique
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id        String     @id @default(uuid())
+  title     String
+  content   String?
+  slug      String     @unique
+  published Boolean    @default(false)
+  status    PostStatus @default(DRAFT)
+  views     Int        @default(0)
+  
+  /// Post metadata including SEO and featured image
+  /// @zodSchema PostMetadataSchema
+  metadata  Json?
+  
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+  
+  category  Category?  @relation(fields: [categoryId], references: [id])
+  categoryId String?
+  
+  comments  Comment[]
+  tags      Tag[]
+  
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([slug])
+}
+
+model Category {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  slug        String  @unique
+  description String?
+  
+  posts       Post[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+  
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId  String?
+  replies   Comment[] @relation("CommentReplies")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([authorId])
+  @@index([postId])
+  @@index([parentId])
+}
+
+model Tag {
+  id    String @id @default(uuid())
+  name  String @unique
+  slug  String @unique
+  
+  posts Post[]
+  
+  createdAt DateTime @default(now())
+}

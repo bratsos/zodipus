@@ -1,0 +1,21 @@
+# Dependencies
+node_modules
+
+# Build
+dist
+
+# Database
+*.db
+*.db-journal
+
+# Prisma
+prisma/migrations
+
+# Generated files (keep custom-schemas.ts, ignore others)
+src/generated/enums.ts
+src/generated/models.ts
+src/generated/generated-relations.ts
+src/generated/generated-index.ts
+
+# Logs
+*.log
