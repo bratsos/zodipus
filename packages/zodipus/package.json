@@ -1,6 +1,6 @@
 {
   "name": "zodipus",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Zodipus: solves your schema tragedies - A Prisma generator for clean Zod schemas with custom JSON field support",
   "keywords": ["prisma", "generator", "zod", "validation", "schema", "typescript", "relations"],
   "repository": {
