@@ -1,0 +1,37 @@
+{
+  "name": "zodipus",
+  "displayName": "Zodipus - Prisma to Zod Generator",
+  "description": "Type-safe Zod schema generator for Prisma with composable Query Engine. Generate validated schemas from your Prisma models, build type-safe queries with automatic result validation, and type JSON fields with custom Zod schemas.",
+  "version": "1.0.0",
+  "publisher": "zodipus",
+  "categories": ["Validation", "Database", "TypeScript", "Code Generation"],
+  "keywords": [
+    "prisma",
+    "zod",
+    "validation",
+    "typescript",
+    "orm",
+    "schema",
+    "type-safe",
+    "query-builder",
+    "code-generation",
+    "runtime-validation"
+  ],
+  "repository": "https://github.com/zodipus/zodipus",
+  "homepage": "https://zodipus.dev",
+  "skills": [
+    "skills/zodipus",
+    "skills/zodipus-setup",
+    "skills/zodipus-query-engine",
+    "skills/zodipus-custom-schemas",
+    "skills/zodipus-troubleshooting",
+    "skills/zodipus-migration"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "prisma": ">=6.0.0",
+    "zod": ">=3.25.0"
+  }
+}
